@@ -131,7 +131,8 @@ fun LegacyInstallerGlobalSettingsPage(
                             description = stringResource(R.string.dhizuku_auto_close_countdown_desc),
                             value = uiState.dhizukuAutoCloseCountDown,
                             startInt = 1,
-                            endInt = 10
+                            endInt = 10,
+                            showTooltip = false
                         ) {
                             viewModel.dispatch(
                                 InstallerSettingsAction.ChangeDhizukuAutoCloseCountDown(it)
