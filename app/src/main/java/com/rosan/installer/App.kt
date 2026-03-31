@@ -7,10 +7,14 @@ import com.rosan.installer.core.crash.CrashHandler
 import com.rosan.installer.core.env.AppConfig
 import com.rosan.installer.data.privileged.service.AutoLockService
 import com.rosan.installer.di.init.appModules
+import com.rosan.installer.domain.device.provider.DeviceCapabilityProvider
 import com.rosan.installer.domain.engine.model.InstalledAppInfo.Companion.getKoin
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.startKoin
+import org.koin.core.qualifier.named
 import org.lsposed.hiddenapibypass.HiddenApiBypass
 import timber.log.Timber
 
@@ -43,6 +47,17 @@ class App : Application() {
             androidContext(this@App)
             // use modules
             modules(appModules)
+        }
+
+        // Retrieve the global scope from core module
+        val appScope: CoroutineScope = getKoin().get(named("AppScope"))
+
+        // Retrieve device capability provider
+        val deviceCapabilityProvider: DeviceCapabilityProvider = getKoin().get()
+
+        // Launch the suspend function safely
+        appScope.launch {
+            deviceCapabilityProvider.refreshPrivilegeStatus()
         }
 
         // Initialize Shizuku module
