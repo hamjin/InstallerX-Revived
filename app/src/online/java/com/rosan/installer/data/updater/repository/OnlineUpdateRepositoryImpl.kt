@@ -7,9 +7,12 @@ import com.rosan.installer.core.env.AppConfig
 import com.rosan.installer.core.env.AppConfig.OFFICIAL_PACKAGE_NAME
 import com.rosan.installer.data.updater.model.GithubRelease
 import com.rosan.installer.domain.device.model.Level
+import com.rosan.installer.domain.settings.model.GithubUpdateChannel
+import com.rosan.installer.domain.settings.repository.AppSettingsRepository
 import com.rosan.installer.domain.updater.model.UpdateInfo
 import com.rosan.installer.domain.updater.repository.UpdateRepository
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
@@ -20,7 +23,8 @@ import java.io.InputStream
 class OnlineUpdateRepositoryImpl(
     private val context: Context,
     private val client: OkHttpClient,
-    private val json: Json
+    private val json: Json,
+    private val appSettingsRepository: AppSettingsRepository
 ) : UpdateRepository {
     companion object {
         private const val REPO_OWNER = "wxxsfxyzm"
@@ -28,10 +32,10 @@ class OnlineUpdateRepositoryImpl(
     }
 
     override suspend fun checkUpdate(): UpdateInfo? = withContext(Dispatchers.IO) {
-        if (AppConfig.isDebug || AppConfig.LEVEL == Level.UNSTABLE || context.packageName != OFFICIAL_PACKAGE_NAME) {
-            Timber.d("Update check skipped based on environment rules.")
-            return@withContext null
-        }
+//        if (AppConfig.isDebug || AppConfig.LEVEL == Level.UNSTABLE || context.packageName != OFFICIAL_PACKAGE_NAME) {
+//            Timber.d("Update check skipped based on environment rules.")
+//            return@withContext null
+//        }
 
         try {
             val remoteRelease = fetchRemoteRelease() ?: return@withContext null
@@ -41,7 +45,23 @@ class OnlineUpdateRepositoryImpl(
                         it.name.endsWith(".apk", ignoreCase = true)
             }
 
-            val downloadUrl = apkAsset?.browserDownloadUrl ?: ""
+            val prefs = appSettingsRepository.preferencesFlow.first()
+            val proxyUrl = when (prefs.githubUpdateChannel) {
+                GithubUpdateChannel.OFFICIAL -> ""
+                GithubUpdateChannel.PROXY_7ED -> "https://gh.sevencdn.com/"
+                GithubUpdateChannel.CUSTOM -> prefs.customGithubProxyUrl
+            }
+            val browserDownloadUrl = apkAsset?.browserDownloadUrl ?: ""
+            val downloadUrl = if (browserDownloadUrl.isNotEmpty() && proxyUrl.isNotEmpty()) {
+                if (proxyUrl.endsWith("/")) {
+                    proxyUrl + browserDownloadUrl
+                } else {
+                    proxyUrl + "/" + browserDownloadUrl
+                }
+            } else {
+                browserDownloadUrl
+            }
+            
             val fileName = apkAsset?.name ?: ""
 
             // Updated regex: APK names no longer have 'v', they look like '...-online-26.03.1a2b3c4.apk'
