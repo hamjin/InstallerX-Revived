@@ -113,67 +113,130 @@ class AppSettingsRepositoryImpl(
         var idx = 0
 
         @Suppress("UNCHECKED_CAST")
-        AppPreferences(
-            authorizer = Authorizer.fromValueOrDefault(values[idx++] as String),
-            alwaysUseRootInSystem = values[idx++] as Boolean,
-            customizeAuthorizer = values[idx++] as String,
-            showDialogInstallExtendedMenu = values[idx++] as Boolean,
-            showSmartSuggestion = values[idx++] as Boolean,
-            disableNotificationForDialogInstall = values[idx++] as Boolean,
-            showDialogWhenPressingNotification = values[idx++] as Boolean,
-            dhizukuAutoCloseCountDown = values[idx++] as Int,
-            notificationSuccessAutoClearSeconds = values[idx++] as Int,
-            versionCompareInSingleLine = values[idx++] as Boolean,
-            sdkCompareInMultiLine = values[idx++] as Boolean,
-            showOPPOSpecial = values[idx++] as Boolean,
-            showExpressiveUI = values[idx++] as Boolean,
-            installerRequireBiometricAuth = BiometricAuthMode.fromValueOrDefault(values[idx++] as String),
-            uninstallerRequireBiometricAuth = values[idx++] as Boolean,
-            showLiveActivity = values[idx++] as Boolean,
-            useMiIsland = values[idx++] as Boolean,
-            useMiIslandBypassRestriction = values[idx++] as Boolean,
-            useMiIslandOuterGlow = values[idx++] as Boolean,
-            useMiIslandBlockingIntervalMs = values[idx++] as Int,
-            autoLockInstaller = values[idx++] as Boolean,
-            autoSilentInstall = values[idx++] as Boolean,
-            showMiuixUI = values[idx++] as Boolean,
-            preferSystemIcon = values[idx++] as Boolean,
-            showLauncherIcon = values[idx++] as Boolean,
+        // Pre-compute values for github update channel validation
+        val authorizer = Authorizer.fromValueOrDefault(values[idx++] as String)
+        val alwaysUseRootInSystem = values[idx++] as Boolean
+        val customizeAuthorizer = values[idx++] as String
+        val showDialogInstallExtendedMenu = values[idx++] as Boolean
+        val showSmartSuggestion = values[idx++] as Boolean
+        val disableNotificationForDialogInstall = values[idx++] as Boolean
+        val showDialogWhenPressingNotification = values[idx++] as Boolean
+        val dhizukuAutoCloseCountDown = values[idx++] as Int
+        val notificationSuccessAutoClearSeconds = values[idx++] as Int
+        val versionCompareInSingleLine = values[idx++] as Boolean
+        val sdkCompareInMultiLine = values[idx++] as Boolean
+        val showOPPOSpecial = values[idx++] as Boolean
+        val showExpressiveUI = values[idx++] as Boolean
+        val installerRequireBiometricAuth = BiometricAuthMode.fromValueOrDefault(values[idx++] as String)
+        val uninstallerRequireBiometricAuth = values[idx++] as Boolean
+        val showLiveActivity = values[idx++] as Boolean
+        val useMiIsland = values[idx++] as Boolean
+        val useMiIslandBypassRestriction = values[idx++] as Boolean
+        val useMiIslandOuterGlow = values[idx++] as Boolean
+        val useMiIslandBlockingIntervalMs = values[idx++] as Int
+        val autoLockInstaller = values[idx++] as Boolean
+        val autoSilentInstall = values[idx++] as Boolean
+        val showMiuixUI = values[idx++] as Boolean
+        val preferSystemIcon = values[idx++] as Boolean
+        val showLauncherIcon = values[idx++] as Boolean
 
-            managedInstallerPackages = values[idx++] as List<NamedPackage>,
-            managedBlacklistPackages = values[idx++] as List<NamedPackage>,
-            managedSharedUserIdBlacklist = values[idx++] as List<SharedUid>,
-            managedSharedUserIdExemptedPackages = values[idx++] as List<NamedPackage>,
+        val managedInstallerPackages = values[idx++] as List<NamedPackage>
+        val managedBlacklistPackages = values[idx++] as List<NamedPackage>
+        val managedSharedUserIdBlacklist = values[idx++] as List<SharedUid>
+        val managedSharedUserIdExemptedPackages = values[idx++] as List<NamedPackage>
+        // Uninstaller
+        val uninstallFlags = values[idx++] as Int
+        // Updater
+        val rawGithubUpdateChannel = GithubUpdateChannel.fromValueOrDefault(values[idx++] as String)
+        val customGithubProxyUrl = values[idx++] as String
+        val githubUpdateChannel = if (rawGithubUpdateChannel == GithubUpdateChannel.CUSTOM && customGithubProxyUrl.isBlank()) GithubUpdateChannel.OFFICIAL else rawGithubUpdateChannel
+        // Lab
+        val labRootEnableModuleFlash = values[idx++] as Boolean
+        val labRootShowModuleArt = values[idx++] as Boolean
+        val labRootMode = RootMode.fromString(values[idx++] as String)
+        val labHttpProfile = HttpProfile.fromString(values[idx++] as String)
+        val labHttpSaveFile = values[idx++] as Boolean
+        val labSetInstallRequester = values[idx++] as Boolean
+        val labTapIconToShare = values[idx++] as Boolean
+        val labShowFilePath = values[idx++] as Boolean
+        val labShowInstallInitiator = values[idx++] as Boolean
+        val labInstallWithoutUserAction = values[idx++] as Boolean
+        val enableFileLogging = values[idx++] as Boolean
+        // UI State
+        val themeMode = ThemeMode.fromValueOrDefault(values[idx++] as String)
+        val paletteStyle = PaletteStyle.fromValueOrDefault(values[idx++] as String)
+        val colorSpec = ThemeColorSpec.fromValueOrDefault(values[idx++] as String)
+        val useDynamicColor = values[idx++] as Boolean
+        val useMiuixMonet = values[idx++] as Boolean
+        val useAppleFloatingBar = values[idx++] as Boolean
+        val seedColorInt = values[idx++] as Int
+        val useDynColorFollowPkgIcon = values[idx++] as Boolean
+        val useDynColorFollowPkgIconForLiveActivity = values[idx++] as Boolean
+        val useBlur = values[idx++] as Boolean
+        val predictiveBackAnimation = PredictiveBackAnimation.fromValueOrDefault(values[idx++] as String)
+        val predictiveBackExitDirection = PredictiveBackExitDirection.fromValueOrDefault(values[idx++] as String)
+
+        AppPreferences(
+            authorizer = authorizer,
+            alwaysUseRootInSystem = alwaysUseRootInSystem,
+            customizeAuthorizer = customizeAuthorizer,
+            showDialogInstallExtendedMenu = showDialogInstallExtendedMenu,
+            showSmartSuggestion = showSmartSuggestion,
+            disableNotificationForDialogInstall = disableNotificationForDialogInstall,
+            showDialogWhenPressingNotification = showDialogWhenPressingNotification,
+            dhizukuAutoCloseCountDown = dhizukuAutoCloseCountDown,
+            notificationSuccessAutoClearSeconds = notificationSuccessAutoClearSeconds,
+            versionCompareInSingleLine = versionCompareInSingleLine,
+            sdkCompareInMultiLine = sdkCompareInMultiLine,
+            showOPPOSpecial = showOPPOSpecial,
+            showExpressiveUI = showExpressiveUI,
+            installerRequireBiometricAuth = installerRequireBiometricAuth,
+            uninstallerRequireBiometricAuth = uninstallerRequireBiometricAuth,
+            showLiveActivity = showLiveActivity,
+            useMiIsland = useMiIsland,
+            useMiIslandBypassRestriction = useMiIslandBypassRestriction,
+            useMiIslandOuterGlow = useMiIslandOuterGlow,
+            useMiIslandBlockingIntervalMs = useMiIslandBlockingIntervalMs,
+            autoLockInstaller = autoLockInstaller,
+            autoSilentInstall = autoSilentInstall,
+            showMiuixUI = showMiuixUI,
+            preferSystemIcon = preferSystemIcon,
+            showLauncherIcon = showLauncherIcon,
+
+            managedInstallerPackages = managedInstallerPackages,
+            managedBlacklistPackages = managedBlacklistPackages,
+            managedSharedUserIdBlacklist = managedSharedUserIdBlacklist,
+            managedSharedUserIdExemptedPackages = managedSharedUserIdExemptedPackages,
             // Uninstaller
-            uninstallFlags = values[idx++] as Int,
+            uninstallFlags = uninstallFlags,
             // Updater
-            githubUpdateChannel = GithubUpdateChannel.fromValueOrDefault(values[idx++] as String),
-            customGithubProxyUrl = values[idx++] as String,
+            githubUpdateChannel = githubUpdateChannel,
+            customGithubProxyUrl = customGithubProxyUrl,
             // Lab
-            labRootEnableModuleFlash = values[idx++] as Boolean,
-            labRootShowModuleArt = values[idx++] as Boolean,
-            labRootMode = RootMode.fromString(values[idx++] as String),
-            labHttpProfile = HttpProfile.fromString(values[idx++] as String),
-            labHttpSaveFile = values[idx++] as Boolean,
-            labSetInstallRequester = values[idx++] as Boolean,
-            labTapIconToShare = values[idx++] as Boolean,
-            labShowFilePath = values[idx++] as Boolean,
-            labShowInstallInitiator = values[idx++] as Boolean,
-            labInstallWithoutUserAction = values[idx++] as Boolean,
-            enableFileLogging = values[idx++] as Boolean,
+            labRootEnableModuleFlash = labRootEnableModuleFlash,
+            labRootShowModuleArt = labRootShowModuleArt,
+            labRootMode = labRootMode,
+            labHttpProfile = labHttpProfile,
+            labHttpSaveFile = labHttpSaveFile,
+            labSetInstallRequester = labSetInstallRequester,
+            labTapIconToShare = labTapIconToShare,
+            labShowFilePath = labShowFilePath,
+            labShowInstallInitiator = labShowInstallInitiator,
+            labInstallWithoutUserAction = labInstallWithoutUserAction,
+            enableFileLogging = enableFileLogging,
             // UI State
-            themeMode = ThemeMode.fromValueOrDefault(values[idx++] as String),
-            paletteStyle = PaletteStyle.fromValueOrDefault(values[idx++] as String),
-            colorSpec = ThemeColorSpec.fromValueOrDefault(values[idx++] as String),
-            useDynamicColor = values[idx++] as Boolean,
-            useMiuixMonet = values[idx++] as Boolean,
-            useAppleFloatingBar = values[idx++] as Boolean,
-            seedColorInt = values[idx++] as Int,
-            useDynColorFollowPkgIcon = values[idx++] as Boolean,
-            useDynColorFollowPkgIconForLiveActivity = values[idx++] as Boolean,
-            useBlur = values[idx++] as Boolean,
-            predictiveBackAnimation = PredictiveBackAnimation.fromValueOrDefault(values[idx++] as String),
-            predictiveBackExitDirection = PredictiveBackExitDirection.fromValueOrDefault(values[idx++] as String),
+            themeMode = themeMode,
+            paletteStyle = paletteStyle,
+            colorSpec = colorSpec,
+            useDynamicColor = useDynamicColor,
+            useMiuixMonet = useMiuixMonet,
+            useAppleFloatingBar = useAppleFloatingBar,
+            seedColorInt = seedColorInt,
+            useDynColorFollowPkgIcon = useDynColorFollowPkgIcon,
+            useDynColorFollowPkgIconForLiveActivity = useDynColorFollowPkgIconForLiveActivity,
+            useBlur = useBlur,
+            predictiveBackAnimation = predictiveBackAnimation,
+            predictiveBackExitDirection = predictiveBackExitDirection,
         )
     }.shareIn(
         scope = appScope,
